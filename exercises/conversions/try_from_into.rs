@@ -23,8 +23,6 @@ enum IntoColorError {
     IntConversion,
 }
 
-// I AM NOT DONE
-
 // Your task is to complete this implementation
 // and return an Ok result of inner type Color.
 // You need to create an implementation for a tuple of three integers,
@@ -38,6 +36,15 @@ enum IntoColorError {
 impl TryFrom<(i16, i16, i16)> for Color {
     type Error = IntoColorError;
     fn try_from(tuple: (i16, i16, i16)) -> Result<Self, Self::Error> {
+        let (red, green, blue) = tuple;
+        if red < 0 || green < 0 || blue < 0 || red > 255 || green > 255 || blue > 255 {
+            return Err(IntoColorError::IntConversion);
+        }
+        return Ok(Color {
+            red: red as u8,
+            green: green as u8,
+            blue: blue as u8,
+        });
     }
 }
 
@@ -45,6 +52,15 @@ impl TryFrom<(i16, i16, i16)> for Color {
 impl TryFrom<[i16; 3]> for Color {
     type Error = IntoColorError;
     fn try_from(arr: [i16; 3]) -> Result<Self, Self::Error> {
+        let nums = arr
+            .into_iter()
+            .map(|v| u8::try_from(*v).map_err(|_| Self::Error::IntConversion))
+            .collect::<Result<Vec<u8>, Self::Error>>()?;
+        return Ok(Color {
+            red: nums[0],
+            green: nums[1],
+            blue: nums[2],
+        });
     }
 }
 
@@ -52,6 +68,18 @@ impl TryFrom<[i16; 3]> for Color {
 impl TryFrom<&[i16]> for Color {
     type Error = IntoColorError;
     fn try_from(slice: &[i16]) -> Result<Self, Self::Error> {
+        if slice.len() != 3 {
+            return Err(Self::Error::BadLen);
+        }
+        let nums = slice
+            .into_iter()
+            .map(|v| u8::try_from(*v).map_err(|_| Self::Error::IntConversion))
+            .collect::<Result<Vec<u8>, Self::Error>>()?;
+        return Ok(Color {
+            red: nums[0],
+            green: nums[1],
+            blue: nums[2],
+        });
     }
 }
 
@@ -59,7 +87,6 @@ fn main() {
     // Use the `try_from` function
     let c1 = Color::try_from((183, 65, 14));
     println!("{:?}", c1);
-
     // Since TryFrom is implemented for Color, we should be able to use TryInto
     let c2: Result<Color, _> = [183, 65, 14].try_into();
     println!("{:?}", c2);
